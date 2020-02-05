@@ -30,6 +30,7 @@ type LocalCommand struct {
 
 func New(command string, argv []string, options ...Option) (*LocalCommand, error) {
 	cmd := exec.Command(command, argv...)
+	print(cmd)
 
 	pty, err := pty.Start(cmd)
 	if err != nil {
