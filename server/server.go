@@ -19,7 +19,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/yudai/gotty/pkg/homedir"
-	"github.com/yudai/gotty/pkg/randomstring"
 	"github.com/yudai/gotty/webtty"
 )
 
@@ -95,10 +94,10 @@ func (server *Server) Run(ctx context.Context, options ...RunOption) error {
 
 	counter := newCounter(time.Duration(server.options.Timeout) * time.Second)
 
-	path := "/"
-	if server.options.EnableRandomUrl {
+	path := "/logconsole/"
+	/* if server.options.EnableRandomUrl {
 		path = "/" + randomstring.Generate(server.options.RandomUrlLength) + "/"
-	}
+	} */
 
 	handlers := server.setupHandlers(cctx, cancel, path, counter)
 	srv, err := server.setupHTTPServer(handlers)
