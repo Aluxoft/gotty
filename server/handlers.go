@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"sync/atomic"
 
@@ -64,10 +65,7 @@ func (server *Server) generateHandleWS(ctx context.Context, cancel context.Cance
 			http.Error(w, "Method not allowed", 405)
 			return
 		}
-		sessionCookie, err  := r.Cookie("session")
-		if err != nil {
-			log.Printf("Error getting session cookie: %s", err.Error())
-		}
+
 		conn, err := server.upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			closeReason = err.Error()
@@ -75,7 +73,7 @@ func (server *Server) generateHandleWS(ctx context.Context, cancel context.Cance
 		}
 		defer conn.Close()
 
-		err = server.processWSConn(ctx, conn, sessionCookie.Value)
+		err = server.processWSConn(ctx, conn)
 
 		switch err {
 		case ctx.Err():
@@ -90,16 +88,9 @@ func (server *Server) generateHandleWS(ctx context.Context, cancel context.Cance
 	}
 }
 
-func (server *Server) processWSConn(ctx context.Context, conn *websocket.Conn, sessionId string) error {
+func (server *Server) processWSConn(ctx context.Context, conn *websocket.Conn) error {
 
 
-	fileName := fmt.Sprintf("/home/rvargasp/sessions/%s.log", sessionId)
-
-	emptyFile, err := os.Create(fileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	emptyFile.Close()
 
 	typ, initLine, err := conn.ReadMessage()
 	if err != nil {
@@ -118,15 +109,26 @@ func (server *Server) processWSConn(ctx context.Context, conn *websocket.Conn, s
 		return errors.New("failed to authenticate websocket connection")
 	}
 
-	// queryPath := "?"
-	// if server.options.PermitArguments && init.Arguments != "" {
-	// 	queryPath = init.Arguments
-	// }
+	 queryPath := "?"
+	 // if server.options.PermitArguments && init.Arguments != "" {
+		queryPath = init.Arguments
+	//}
 
-	//query, err := url.Parse(queryPath)
-	//if err != nil {
-	//	return errors.Wrapf(err, "failed to parse arguments")
-	// }
+	query, err := url.Parse(queryPath)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse arguments")
+	}
+
+	uuid:= query.Query().Get("uuid")
+
+	fileName := fmt.Sprintf("/opt/pubskape_sessions/%s.log",uuid)
+
+	emptyFile, err := os.Create(fileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	emptyFile.Close()
+
 	arguments := []string{"-f", fileName}
 	params := map[string][]string{"arg": arguments}
 	var slave Slave
