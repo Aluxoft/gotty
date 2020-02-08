@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"net/url"
@@ -88,6 +89,11 @@ func (server *Server) generateHandleWS(ctx context.Context, cancel context.Cance
 	}
 }
 
+func IsValidUUID(u string) bool {
+	_, err := uuid.Parse(u)
+	return err == nil
+}
+
 func (server *Server) processWSConn(ctx context.Context, conn *websocket.Conn) error {
 
 
@@ -120,6 +126,10 @@ func (server *Server) processWSConn(ctx context.Context, conn *websocket.Conn) e
 	}
 
 	uuid:= query.Query().Get("uuid")
+
+	if !IsValidUUID(uuid) {
+		return errors.Wrapf(err, "invalid uuid")
+	}
 
 	fileName := fmt.Sprintf("/opt/pubskape_sessions/%s.log",uuid)
 
