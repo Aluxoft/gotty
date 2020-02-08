@@ -128,6 +128,7 @@ func (server *Server) processWSConn(ctx context.Context, conn *websocket.Conn) e
 	uuid:= query.Query().Get("uuid")
 
 	if !IsValidUUID(uuid) {
+		log.Println("invalid uuid")
 		return errors.Wrapf(err, "invalid uuid")
 	}
 
@@ -135,7 +136,7 @@ func (server *Server) processWSConn(ctx context.Context, conn *websocket.Conn) e
 
 	emptyFile, err := os.Create(fileName)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	emptyFile.Close()
 
